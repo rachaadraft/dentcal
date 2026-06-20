@@ -169,6 +169,28 @@
     text-align: center;
     margin-bottom: 6px;
   }
+  .trauma-block {
+    background: #fff;
+    border: 1px solid #ddd6fe;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+  .trauma-cond {
+    font-weight: 600;
+    color: #6d28d9;
+    margin-top: 8px;
+  }
+  .trauma-mng { margin: 4px 0; font-size: 0.92rem; }
+  .trauma-mng b { color: #4c1d95; }
+  .trauma-fu {
+    font-size: 0.86rem;
+    color: #5b21b6;
+    background: #f5f3ff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-top: 6px;
+  }
   footer {
     text-align: center;
     margin-top: 30px;
@@ -205,6 +227,7 @@
     <button class="tab-btn" onclick="switchTab(2)">🧒 จ่ายยาเด็ก</button>
     <button class="tab-btn" onclick="switchTab(3)">💉 ยาชาเด็ก</button>
     <button class="tab-btn" onclick="switchTab(4)">🛡️ ATB Prophylaxis</button>
+    <button class="tab-btn" onclick="switchTab(5)">🦷 Dental Trauma</button>
   </div>
 
   <!-- TAB 1: Adult Drug -->
@@ -226,11 +249,12 @@
     <h2>คำนวณยาชาผู้ป่วยผู้ใหญ่</h2>
     <label>ชนิดยาชา</label>
     <select id="adultAnesType" onchange="toggleHTN()">
-      <option value="lido">2% Lidocaine + Epinephrine</option>
+      <option value="lido">2% Lidocaine with Epinephrine 1:100,000</option>
+      <option value="artic">4% Articaine with Epinephrine 1:100,000</option>
       <option value="mepi">3% Mepivacaine (ไม่มี Epinephrine)</option>
     </select>
     <div id="htnWrap">
-      <label><input type="checkbox" id="htnCheck" style="width:auto;margin-right:6px;">ผู้ป่วยมีภาวะความดันโลหิตสูง (จำกัด Epinephrine)</label>
+      <label><input type="checkbox" id="htnCheck" style="width:auto;margin-right:6px;">ผู้ป่วยมี Cardiovascular disease (จำกัด Epinephrine)</label>
     </div>
     <label>น้ำหนัก (kg)</label>
     <input type="number" id="adultWeight" placeholder="กรอกน้ำหนัก" min="1">
@@ -284,6 +308,26 @@
     <div class="result" id="atbResult"></div>
   </div>
 
+  <!-- TAB 6: Dental Trauma Management -->
+  <div class="card tab-content hidden" id="tab5">
+    <h2>Dental Trauma Management</h2>
+    <label>เลือกประเภทการบาดเจ็บ</label>
+    <select id="traumaType">
+      <option value="t1">Enamel-Dentin fracture</option>
+      <option value="t2">Complicated crown fracture</option>
+      <option value="t3">Crown-root fracture</option>
+      <option value="t4">Root fracture</option>
+      <option value="t5">Alveolar bone fracture</option>
+      <option value="t6">Concussion or Subluxation</option>
+      <option value="t7">Extrusive luxation</option>
+      <option value="t8">Lateral luxation</option>
+      <option value="t9">Intrusive luxation</option>
+      <option value="t10">Avulsion</option>
+    </select>
+    <button class="action" onclick="showTrauma()">แสดงแนวทางการจัดการ</button>
+    <div class="result" id="traumaResult"></div>
+  </div>
+
   <footer>
     <div class="dev-name">Rachadol Thuephut, DDS</div>
     <div class="dev-affil">Institute of Dentistry</div>
@@ -310,7 +354,7 @@ function calcAdultDrug(){
   let html='';
   if(c==='surgical'){
     html+='<strong>Surgical removal</strong>';
-    html+=rx('1) Ibuprofen 400 mg/tab','Disp. 10 tabs\nSig. 1 tab po tid pc');
+    html+=rx('1) Ibuprofen 400 mg/tab','Disp. 10 tabs\nSig. 1 tab po tid pc stat');
     html+=rx('2) Amoxicillin 500 mg/cap','Disp. 15 caps\nSig. 1 cap po tid pc until finished');
   } else if(c==='extraction'){
     html+='<strong>Extraction</strong>';
@@ -334,7 +378,7 @@ function calcAdultDrug(){
 /* ---------- TAB 2: Adult Anesthesia ---------- */
 function toggleHTN(){
   const t=document.getElementById('adultAnesType').value;
-  document.getElementById('htnWrap').style.display = (t==='lido')?'block':'none';
+  document.getElementById('htnWrap').style.display = (t==='lido'||t==='artic')?'block':'none';
 }
 function calcAdultAnes(){
   const w=parseFloat(document.getElementById('adultWeight').value);
@@ -346,15 +390,27 @@ function calcAdultAnes(){
     let cartridges=Math.floor((w*7)/36);
     let capped=false;
     if(cartridges>11){ cartridges=11; capped=true; }
-    html+=`<div class="info">2% Lidocaine + Epinephrine</div>`;
+    html+=`<div class="info">2% Lidocaine with Epinephrine 1:100,000</div>`;
     html+=`<div class="info">สูตร: (${w} × 7) / 36 = ${((w*7)/36).toFixed(2)} หลอด</div>`;
     if(htn){
-      html+=`<div class="badge">ฉีดได้สูงสุด 2 หลอด (มีความดันสูง)</div>`;
+      html+=`<div class="badge">ฉีดได้สูงสุด 2 หลอด (มี Cardiovascular disease)</div>`;
       html+=`<div class="info">เพราะ Epinephrine 1 หลอด (1.8 mL) = 0.018 mg<br>0.04 mg ÷ 0.018 mg = 2.22 หลอด → จำกัดที่ 2 หลอด</div>`;
       html+=`<div class="info">หากต้องการมากกว่านี้ เลือกใช้ 3% Mepivacaine ซึ่งไม่มี Epinephrine</div>`;
     } else {
       html+=`<div class="badge">ฉีดได้สูงสุด ${cartridges} หลอด</div>`;
       if(capped) html+=`<div class="info warn">* จำกัดสูงสุดที่ 11 หลอด</div>`;
+    }
+  } else if(t==='artic'){
+    const htn=document.getElementById('htnCheck').checked;
+    let cartridges=Math.floor((w*7)/68);
+    html+=`<div class="info">4% Articaine with Epinephrine 1:100,000</div>`;
+    html+=`<div class="info">สูตร: (${w} × 7) / 68 = ${((w*7)/68).toFixed(2)} หลอด</div>`;
+    if(htn){
+      html+=`<div class="badge">ฉีดได้สูงสุด 2 หลอด (มี Cardiovascular disease)</div>`;
+      html+=`<div class="info">เพราะ Epinephrine 1 หลอด (1.8 mL) = 0.018 mg<br>0.04 mg ÷ 0.018 mg = 2.22 หลอด → จำกัดที่ 2 หลอด</div>`;
+      html+=`<div class="info">หากต้องการมากกว่านี้ เลือกใช้ 3% Mepivacaine ซึ่งไม่มี Epinephrine</div>`;
+    } else {
+      html+=`<div class="badge">ฉีดได้สูงสุด ${cartridges} หลอด</div>`;
     }
   } else {
     let cartridges=Math.floor((w*4.4)/54);
@@ -470,7 +526,6 @@ function calcAtbProphylaxis(){
   let html='<div class="lead">Single dose 30–60 mins before the procedure</div>';
 
   if(g==='adult'){
-    // กรณีกินยาทางปากได้
     html+='<div class="section-head">กรณีที่กินยาทางปากได้</div>';
     html+=rx('Amoxicillin','2 g po');
 
@@ -539,6 +594,75 @@ function calcAtbProphylaxis(){
   </div>`;
 
   show('atbResult',html);
+}
+
+/* ---------- TAB 6: Dental Trauma Management ---------- */
+function tBlock(condition, mng, fu){
+  let h='<div class="trauma-block">';
+  if(condition) h+=`<div class="trauma-cond">${condition}</div>`;
+  if(mng) h+=`<div class="trauma-mng">${mng}</div>`;
+  if(fu) h+=`<div class="trauma-fu">📅 Follow-up: ${fu}</div>`;
+  h+='</div>';
+  return h;
+}
+function showTrauma(){
+  const t=document.getElementById('traumaType').value;
+  let html='';
+
+  if(t==='t1'){
+    html+='<div class="section-head">Enamel-Dentin fracture</div>';
+    html+=tBlock('', '<b>Management:</b> GIC/Composite filling', '6-8 weeks');
+  }
+  else if(t==='t2'){
+    html+='<div class="section-head">Complicated crown fracture</div>';
+    html+=tBlock('If: Small pulp exposed', '<b>Management:</b> Partial pulpotomy (CaOH₂+GIC+CoF)', '');
+    html+=tBlock('If: Large pulp exposed', '<b>Management:</b> Completed pulpotomy', '');
+    html+=`<div class="trauma-fu">📅 Follow-up: 1 weeks, 6-8 weeks, 1 year (+ X-ray)</div>`;
+  }
+  else if(t==='t3'){
+    html+='<div class="section-head">Crown-root fracture</div>';
+    html+=tBlock('If: บูรณะได้', 'หากไม่ Exposed: ปิด Dentin ด้วย GIC<br>หาก Exposed: Pulpotomy หรือ Pulpectomy', '');
+    html+=tBlock('If: บูรณะไม่ได้', '<b>Management:</b> ถอนออก', '');
+    html+=`<div class="trauma-fu">📅 Follow-up: 1 weeks, 6-8 weeks, 1 year (+ X-ray)</div>`;
+  }
+  else if(t==='t4'){
+    html+='<div class="section-head">Root fracture</div>';
+    html+=tBlock('If: Crown ไม่โยก', '<b>Management:</b> ปล่อยไว้ (Spontaneous reposition)', '1 weeks, 6-8 weeks, 1 year, Yearly');
+    html+=tBlock('If: Crown โยก — หากไม่โยกมาก', '<b>Management:</b> ปล่อยไว้ (Spontaneous reposition)', '1 weeks, 6-8 weeks, 1 year, Yearly');
+    html+=tBlock('If: Crown โยก — หากมี Occlusal interference', '<b>Management:</b> Reposition + Splint 4 weeks', '1 weeks, 4 weeks (off splint), 8 weeks, 1 year');
+    html+=tBlock('If: Crown โยก — หากโยกมาก', '<b>Management:</b> ถอน Coronal part ออก', '1 year, Yearly');
+  }
+  else if(t==='t5'){
+    html+='<div class="section-head">Alveolar bone fracture</div>';
+    html+=tBlock('', '<b>Management:</b> Reposition + Splint 4 weeks', '1 week, 4 weeks (off splint + X-ray), 1 year (+ X-ray)');
+  }
+  else if(t==='t6'){
+    html+='<div class="section-head">Concussion or Subluxation</div>';
+    html+=tBlock('', '<b>Management:</b> Observed', '');
+    html+=`<div class="trauma-fu">📅 Concussion: 1 week, 6-8 weeks</div>`;
+    html+=`<div class="trauma-fu">📅 Subluxation: 1 week, 6-8 weeks and Yearly</div>`;
+  }
+  else if(t==='t7'){
+    html+='<div class="section-head">Extrusive luxation</div>';
+    html+=tBlock('If: NO occlusal interference', '<b>Management:</b> ปล่อยไว้ (Spontaneous reposition)', '');
+    html+=tBlock('If: WITH occlusal interference (> 3 mm)', '<b>Management:</b> Extraction', '');
+    html+=`<div class="trauma-fu">📅 Follow-up: 1 week, 6-8 weeks, 1 year, Yearly</div>`;
+  }
+  else if(t==='t8'){
+    html+='<div class="section-head">Lateral luxation</div>';
+    html+=tBlock('If: MINIMAL/NO occlusal interference', '<b>Management:</b> ปล่อยไว้ (Spontaneous reposition for 6 months)', '1 week, 6-8 weeks, 6 months, 1 year, Yearly');
+    html+=tBlock('If: Severe displacement', '<b>Management:</b> Extraction หรือ Reposition + Splint 4 weeks', '1 week, 4 weeks (off splint), 8 weeks, 6 months, 1 year, Yearly');
+  }
+  else if(t==='t9'){
+    html+='<div class="section-head">Intrusive luxation</div>';
+    html+=tBlock('', '<b>Management:</b> ปล่อยไว้ (Spontaneous reposition for 6-12 months); For severe intrusion, monitoring eruption of permanent teeth at 6 years old', '1 week, 6-8 weeks, 6 months, 1 year');
+  }
+  else if(t==='t10'){
+    html+='<div class="section-head">Avulsion</div>';
+    html+=tBlock('', '<b>Management:</b> No replantation and monitoring eruption of permanent teeth at 6 years old', '6-8 weeks');
+  }
+
+  show('traumaResult',html);
 }
 
 toggleHTN();
