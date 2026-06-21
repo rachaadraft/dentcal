@@ -508,9 +508,9 @@ function calcChildAnes(){
     html+=`<div class="info">สูตร: (${w} × 4.4) / 36 = ${((w*4.4)/36).toFixed(2)} หลอด</div>`;
     html+=`<div class="badge">ฉีดได้สูงสุด ${c} หลอด</div>`;
   } else {
-    const c=Math.floor((w*7)/34);
+    const c=Math.floor((w*7)/68);
     html+=`<div class="info">Articaine</div>`;
-    html+=`<div class="info">สูตร: (${w} × 7) / 34 = ${((w*7)/34).toFixed(2)} หลอด</div>`;
+    html+=`<div class="info">สูตร: (${w} × 7) / 68 = ${((w*7)/68).toFixed(2)} หลอด</div>`;
     html+=`<div class="badge">ฉีดได้สูงสุด ${c} หลอด</div>`;
   }
   show('childAnesResult',html);
